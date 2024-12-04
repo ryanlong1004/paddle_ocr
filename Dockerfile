@@ -1,51 +1,28 @@
-# syntax=docker/dockerfile:1
+# Use a base image with Python
+FROM python:3.9-slim
 
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
-ARG PYTHON_VERSION=3.9.6
-FROM python:${PYTHON_VERSION}-slim as base
-
-# Prevents Python from writing pyc files.
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Keeps Python from buffering stdout and stderr to avoid situations where
-# the application crashes without emitting any logs due to buffering.
-ENV PYTHONUNBUFFERED=1
-
+# Create a working directory
 WORKDIR /app
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
-# ARG UID=10001
-# RUN adduser \
-#     --disabled-password \
-#     --gecos "" \
-#     --home "/nonexistent" \
-#     --shell "/sbin/nologin" \
-#     --no-create-home \
-#     --uid "${UID}" \
-#     appuser
+# Copy the current directory contents into the container
+COPY . /app
 
-# # Download dependencies as a separate step to take advantage of Docker's caching.
-# # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
-# # Leverage a bind mount to requirements.txt to avoid having to copy them into
-# # into this layer.
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    wget \
+    libgomp1 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN wget 'http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb' && dpkg -i 'libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb'
 
-# # Switch to the non-privileged user to run the application.
-# USER appuser
+# Install Python dependencies
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt && python -m src.main --help
 
-# Copy the source code into the container.
-COPY . .
-
-RUN python -m pip install --upgrade pip && pip install -r requirements.txt
-
-# # Expose the port that the application listens on.
-# EXPOSE 5056
-
-# # Run the application.
-# CMD fastapi run
+# Specify the command to run the script
+ENTRYPOINT ["python", "-m", "src.main"]
