@@ -7,3 +7,6 @@ __pycache__
 weights/models/*
 !weights/models
 
+output/
+outputs/
+

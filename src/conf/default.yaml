@@ -1,0 +1,9 @@
+pipeline:
+  type: OCR
+
+input:
+  image_path: ./tests/fixtures/chinese_test.png
+
+output:
+  img_path: ./output
+  json_path: ./output

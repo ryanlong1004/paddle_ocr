@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  paddle_ocr:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - .:/app
+    command: ["python", "main.py"]
